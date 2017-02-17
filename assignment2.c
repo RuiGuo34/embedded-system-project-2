@@ -204,8 +204,36 @@ void updateLastAliveTasks(const int* aliveTasks) {
 		lastAliveTasks[i] = *(aliveTasks+i);
 	}
 }
+long long totalIdleTime = 0; 
+
+void printTask(TaskSelection t){
+    printDBG("Task  id:%d, freq:%d", t.task, t.freq);
+    printDBG("   ::::   ");
+}
+
+void printTasks(const int *aliveTasks){
+    int i = 0;
+    printDBG("Current Alive Tasks:  ");
+    for(;i<8;i++){
+        printDBG("%d ", *(aliveTasks+i));
+    }
+    printDBG(" :::::: ");
+}
+
+void printDeadlines(){
+    int i = 0;
+    printDBG("Current Deadline: ");
+    for(;i<NUM_TASKS;i++){
+        printDBG("");
+        printDBG("%lld  ",currentDeadlines[i]);
+    }
+    printDBG("  :::::  ");
+}
 
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
+	totalIdleTime += idleTime;
+	printDBG("Total idleTime is %lld\n", totalIdleTime);
+
 	static int prev_freq = 1;
 	static long long prev_timestamp = -1;
 	long long curr_timestamp = get_scheduler_elapsed_time_us();
@@ -227,7 +255,12 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
 	printDBG("Energy: %lld\n", energy);
 	printDBG("Time Difference %lld\n", time_difference);
+	printTasks(aliveTasks);
+	printTask(sel);
+	printDBG("idleTime is %lld\n", idleTime);
+
 	updateLastAliveTasks(aliveTasks);
+
 
     return sel;
 }
