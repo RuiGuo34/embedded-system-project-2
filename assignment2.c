@@ -226,7 +226,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
 	printDBG("Energy: %lld\n", energy);
-
+	printDBG("Time Difference %lld\n", time_difference);
 	updateLastAliveTasks(aliveTasks);
 
     return sel;
