@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
 	// Initialize for the interfaces provided
 	signal(SIGINT, signal_handler);
-	init_deferred_buffer(1024*1024); // 1MB
+	init_deferred_buffer(1024*1024); // 1MB, unit in Byte
 	init_userspace_governor();
 	init_workload();
 

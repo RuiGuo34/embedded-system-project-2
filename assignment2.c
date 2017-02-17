@@ -3,6 +3,8 @@
 #include "workload.h"
 #include "scheduler.h"
 #include "governor.h"
+#include <limits.h>
+#include <float.h>
 
 // Note: Deadline of each workload is defined in the "workloadDeadlines" variable.
 // i.e., You can access the dealine of the BUTTON thread using workloadDeadlines[BUTTON]
@@ -14,7 +16,123 @@
 // This function is called at the start part of the program before actual scheduling
 // - Parameters
 // sv: The variable which is shared for every function over all threads
+
+typedef void* (*thread_function_t)(void*);
+
+int optimized_freq[] = {1,1,1,1,1,1,1,1};
+
+long long currentDeadlines[] = {0,0,0,0,0,0,0,0};
+
+thread_function_t functions[] = {&thread_button, &thread_twocolor, &thread_temp,
+&thread_track, &thread_touch, &thread_rgbcolor,&thread_aled, &thread_buzzer };
+
+long long energy = 0;
+
+int P_WORK[] = {450,1050};
+
+int sum(int *a) {
+	unsigned int i = 0, s = 0;
+	for (;i<NUM_TASKS;i++) {
+		s+=a[i];
+	}
+	return s;
+}
+
 void learn_workloads(SharedVariable* sv) {
+	long long start, end;
+	long long workloads_1200[] = {0,0,0,0,0,0,0,0};
+	long long workloads_600[] = {0,0,0,0,0,0,0,0};
+	int Power_1200 = 1050;
+	int Power_600 = 450;
+
+	for (unsigned int i = 0; i < NUM_TASKS; i++) {
+		//first test with max cpu freq
+		set_by_max_freq();
+		start = get_current_time_us();
+		(*(functions[i]))(sv); 
+		end = get_current_time_us();
+
+		workloads_1200[i] = end-start;
+
+		//then test with min cpu freq
+		set_by_min_freq();
+		start = get_current_time_us(); 
+		(*(functions[i]))(sv); 
+		workloads_600[i] = end-start;
+
+		currentDeadlines[i] = workloadDeadlines[i];
+
+	}
+
+	for (unsigned int i = 0; i < NUM_TASKS; i++) {
+		//calculate the approximate power
+		if (workloads_1200[i]*Power_1200 > workloads_600[i]*Power_600) {
+			optimized_freq[i] = 0;
+		}
+	}
+
+	// check schedulity
+	int idx = -1;
+	float util[8] = {0,0,0,0,0,0,0,0};
+	float u = 2;
+	//1.0 is LIMIT
+	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
+		idx = -1;
+		for (unsigned int i = 0; i < NUM_TASKS; i++) {
+			if (optimized_freq[i] == 0) {
+				optimized_freq[i] = 1;
+				float update = 0.0;
+				for (unsigned int j = 0; j < NUM_TASKS; j++) {
+					if (optimized_freq[j] == 1) {
+						update += ((float)workloads_1200[j])/workloadDeadlines[j];
+					}
+					else {
+						update += ((float)workloads_600[j])/workloadDeadlines[j];
+					}
+				}
+				util[i] = update;
+				optimized_freq[i] = 0;
+			}
+		}
+
+		//find the max index that is less than one 
+		float min = FLT_MIN;
+		for (unsigned i = 0; i < sizeof(util); i++) {
+			if (util[i] < 1.0 && util[i] > min) {
+				min = util[i];
+				idx = i;
+			}
+		}
+		
+		//idx is -1, just change to the max index;
+		if (idx == -1) {
+			min = FLT_MIN;
+			for (unsigned i = 0; i < sizeof(util); i++){
+				if (util[i] > min) {
+					min = util[i];
+					idx = i;
+				}
+			}
+		}
+
+		//clear util array
+		for (unsigned i = 0; i < sizeof(util); i++){
+			util[i] = 0.0;
+		}
+ 
+		optimized_freq[idx] = 1; 
+		u = 0.0;
+		for (unsigned int i = 0; i < sizeof(optimized_freq); i++) {
+			if (optimized_freq[i] == 1) {
+				u += ((float)workloads_1200[i])/workloadDeadlines[i];
+			}
+			else {
+				u += ((float)workloads_600[i])/workloadDeadlines[i];
+			}
+		}
+		printDBG("util %f :: \n",u);
+	}
+
 	// TODO: Fill the body
 	// This function is executed before the scheduling simulation.
 	// You need to calculate the execution time of each thread here.
@@ -40,37 +158,76 @@ void learn_workloads(SharedVariable* sv) {
 //           (i.e., it's larger than 0 only when all threads are finished and not reache the next preiod.)
 // - Return value
 // TaskSelection structure which indicates the scheduled task and the CPU frequency
-TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
-	// TODO: Fill the body
-	// This function is executed inside of the scheduling simulation.
-    // You need to implement an energy-efficient EDF (Earliest Deadline First) scheduler.
 
-	// Tip 1. You may get the current time elapsed in the scheduler here like:
-	// long long curTime = get_scheduler_elapsed_time_us();
+int lastAliveTasks[] = {0,0,0,0,0,0,0,0};
 
-	// Also, do not make any interruptable / IO tasks in this function.
-	// You can use printfDBG instead of printf.
-
-	// Sample scheduler: Round robin
-	// It selects a next thread using aliveTasks.
-	static int prev_selection = -1;
-
-	int i = prev_selection + 1;
-	while(1) {
-		if (i == NUM_TASKS)
-			i = 0;
-
+void updateCurrentDeadLines(long long time_difference, int* lastAliveTasks, const int* aliveTasks, long long idleTime) {
+	int i = 0;
+	int x;
+	for (; i < NUM_TASKS; i++) {
 		if (aliveTasks[i] == 1) {
-			prev_selection = i;
-			break;
+			if (lastAliveTasks[i] == 1 && idleTime == 0) {
+				x = currentDeadlines[i] - time_difference;
+				currentDeadlines[i] = x > 0 ? x:workloadDeadlines[i];
+			}
+			else {
+				currentDeadlines[i] = workloadDeadlines[i];
+			}
 		}
-		++i;
+		else {
+			currentDeadlines[i] = 0;
+		}
 	}
+}
 
-	// The retun value can be specified like this:
+int chooseTask(long long *currentDeadlines, const int* aliveTasks) {
+	long long minDead = LONG_MAX;
+	int taskIdx = -1, i = 0;
+	for (; i < NUM_TASKS; i++) {
+		if (aliveTasks[i] == 1) {
+			if (currentDeadlines[i] < minDead) {
+				minDead = currentDeadlines[i];
+				taskIdx = i;
+			}
+		}
+	}
+	return taskIdx;
+}
+
+int chooseFreq(int i) {
+	return optimized_freq[i];
+}
+
+void updateLastAliveTasks(const int* aliveTasks) {
+	int i = 0;
+	for (; i < NUM_TASKS; i++) {
+		lastAliveTasks[i] = *(aliveTasks+i);
+	}
+}
+
+TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
+	static int prev_freq = 1;
+	static long long prev_timestamp = -1;
+	long long curr_timestamp = get_scheduler_elapsed_time_us();
+	long long time_difference = 0;
+
+	if (prev_timestamp != -1) {
+		time_difference = curr_timestamp - prev_timestamp;
+	}
+	prev_timestamp = curr_timestamp;
+
+	updateCurrentDeadLines(time_difference, lastAliveTasks, aliveTasks, idleTime);
+
 	TaskSelection sel;
-	sel.task = prev_selection; // The thread ID which will be scheduled. i.e., 0(BUTTON) ~ 7(BUZZER)
-	sel.freq = 1; // Request the maximum frequency (if you want the minimum frequency, use 0 instead.)
+	sel.task = chooseTask(currentDeadlines, aliveTasks);
+	sel.freq = chooseFreq(sel.task);
+
+	prev_freq = sel.freq;
+
+	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
+	printDBG("Energy: %lld\n", energy);
+
+	updateLastAliveTasks(aliveTasks);
 
     return sel;
 }
