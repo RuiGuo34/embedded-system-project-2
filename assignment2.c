@@ -230,6 +230,8 @@ void printDeadlines(){
     printDBG("  :::::  ");
 }
 
+
+
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
 	totalIdleTime += idleTime;
 	printDBG("Total idleTime is %lld\n", totalIdleTime);
@@ -257,6 +259,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	printDBG("Time Difference %lld\n", time_difference);
 	printTasks(aliveTasks);
 	printTask(sel);
+	printDeadlines();
 	printDBG("idleTime is %lld\n", idleTime);
 
 	updateLastAliveTasks(aliveTasks);
