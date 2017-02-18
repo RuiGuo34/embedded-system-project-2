@@ -232,7 +232,7 @@ void printDeadlines(){
 
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
 	totalIdleTime += idleTime;
-	printDBG("current idleTime is %lld\n", totalIdleTime);
+	printDBG("current idleTime is %lld\n", idleTime);
 	printDBG("Total idleTime is %lld\n", totalIdleTime);
 
 	static int prev_freq = 1;
