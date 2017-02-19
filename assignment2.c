@@ -142,10 +142,10 @@ void learn_workloads(SharedVariable* sv) {
  
 		optimized_freq[idx] = 1; 
 		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
-		printDBG("util %f :: \n",u);
+		printDBG("util %f \n",u);
 	}
 	printDBG("finished with \n");
-	printFreq(optimized_freq);
+	// printFreq(optimized_freq);
 	printDBG("\n");
 
 	// TODO: Fill the body
