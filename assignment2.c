@@ -133,10 +133,11 @@ void learn_workloads(SharedVariable* sv) {
 				if (util[i] > min && optimized_freq[i] != 1) {
 					min = util[i];
 					idx = i;
+					printDBG("idx %d",idx);
 				}
 			}
 		}
-		printDBG("idx %d",idx);
+
 		//clear util array
 		for (unsigned i = 0; i < sizeof(util); i++){
 			util[i] = 0.0;
