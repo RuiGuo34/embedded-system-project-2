@@ -107,7 +107,7 @@ void learn_workloads(SharedVariable* sv) {
 	float u = 2;
 	//1.0 is LIMIT
 	printDBG("num tasks %d\n", NUM_TASKS);
-	while (u > 0.5 && sum(optimized_freq) != NUM_TASKS) {
+	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
 		idx = -1;
 		for (unsigned int i = 0; i < NUM_TASKS; i++) {
 			if (optimized_freq[i] == 0) {
@@ -273,7 +273,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	prev_freq = sel.freq;
 
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
-	// printDBG("Energy: %lld\n", energy);
+	printDBG("Energy: %lld\n", energy);
 	// printDBG("Time Difference %lld\n", time_difference);
 	// printTasks(aliveTasks);
 	// printTask(sel);
