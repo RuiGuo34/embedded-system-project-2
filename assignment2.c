@@ -76,14 +76,18 @@ void learn_workloads(SharedVariable* sv) {
 		end = get_current_time_us();
 
 		workloads_1200[i] = end-start;
-
+		printDBG("wordload for 1200, task %d", i);
+		printDBG(" %lld ",workloads_1200[i]);
+		printDBG("\n");
 		//then test with min cpu freq
 		set_by_min_freq();
 		start = get_current_time_us(); 
 		(*(functions[i]))(sv);
 		end = get_current_time_us();
 		workloads_600[i] = end-start;
-
+		printDBG("wordload for 600, task %d", i);
+		printDBG(" %lld ",workloads_600[i]);
+		printDBG("\n");
 		currentDeadlines[i] = workloadDeadlines[i];
 
 	}
