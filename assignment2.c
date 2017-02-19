@@ -99,7 +99,7 @@ void learn_workloads(SharedVariable* sv) {
 		}
 	}
 
-	//printFreq(optimized_freq);
+	printFreq(optimized_freq);
 
 	// check schedulity
 	int idx = -1;
