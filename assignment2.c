@@ -47,6 +47,20 @@ void printFreq(int *freq){
     printf("\n");    
 }
 
+float calculate_utilization(int *optimized_freq, long long *w_1200, long long *w_600, long long *deadlines) {
+	float sum = 0.0;
+	int i = 0;
+	for (;i<NUM_TASKS;i++) {
+		if (optimized_freq[i] == 1) {
+			sum += ((float)w_1200[i])/deadlines[i];
+		}
+		else {
+			sum += ((float)w_600[i])/deadlines[i];
+		}
+	}
+	return sum;
+}
+
 void learn_workloads(SharedVariable* sv) {
 	long long start, end;
 	long long workloads_1200[] = {0,0,0,0,0,0,0,0};
@@ -95,15 +109,8 @@ void learn_workloads(SharedVariable* sv) {
 			if (optimized_freq[i] == 0) {
 				optimized_freq[i] = 1;
 				float update = 0.0;
-				for (unsigned int j = 0; j < NUM_TASKS; j++) {
-					if (optimized_freq[j] == 1) {
-						update += ((float)workloads_1200[j])/workloadDeadlines[j];
-					}
-					else {
-						update += ((float)workloads_600[j])/workloadDeadlines[j];
-					}
-				}
-				util[i] = update;
+				
+				util[i] = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 				optimized_freq[i] = 0;
 			}
 		}
@@ -134,21 +141,12 @@ void learn_workloads(SharedVariable* sv) {
 		}
  
 		optimized_freq[idx] = 1; 
-		u = 0.0;
-		for (unsigned int i = 0; i < sizeof(optimized_freq); i++) {
-			if (optimized_freq[i] == 1) {
-				u += ((float)workloads_1200[i])/workloadDeadlines[i];
-			}
-			else {
-				u += ((float)workloads_600[i])/workloadDeadlines[i];
-			}
-			printDBG("u %f\n", u);
-		}
+		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 		printDBG("util %f :: \n",u);
 	}
-
+	printDBG("finished with \n");
 	printFreq(optimized_freq);
-
+	printDBG("\n");
 
 	// TODO: Fill the body
 	// This function is executed before the scheduling simulation.
