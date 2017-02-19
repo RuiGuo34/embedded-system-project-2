@@ -136,12 +136,12 @@ void learn_workloads(SharedVariable* sv) {
 				}
 			}
 		}
-
+		printDBG("idx %d",idx);
 		//clear util array
 		for (unsigned i = 0; i < sizeof(util); i++){
 			util[i] = 0.0;
 		}
- 
+ 		
 		optimized_freq[idx] = 1; 
 		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 		printDBG("util %f \n",u);
