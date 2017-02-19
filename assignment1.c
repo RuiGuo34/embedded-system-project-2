@@ -127,4 +127,3 @@ void body_buzzer(SharedVariable* sv) {
 		digitalWrite(PIN_BUZZER,0);
 	}
 }
-

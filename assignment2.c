@@ -57,7 +57,8 @@ void learn_workloads(SharedVariable* sv) {
 		//then test with min cpu freq
 		set_by_min_freq();
 		start = get_current_time_us(); 
-		(*(functions[i]))(sv); 
+		(*(functions[i]))(sv);
+		end = get_current_time_us();
 		workloads_600[i] = end-start;
 
 		currentDeadlines[i] = workloadDeadlines[i];
