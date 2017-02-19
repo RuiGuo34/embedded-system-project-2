@@ -145,7 +145,7 @@ void learn_workloads(SharedVariable* sv) {
 		printDBG("util %f :: \n",u);
 	}
 
-
+	printFreq(optimized_freq);
 
 
 	// TODO: Fill the body
