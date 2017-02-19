@@ -38,6 +38,15 @@ int sum(int *a) {
 	return s;
 }
 
+void printFreq(int *freq){
+    int i = 0;
+    printf("Frequency Preference: ");
+    for(;i<NUM_TASKS;i++){
+        printf("%d ", freq[i]);        
+    }
+    printf("\n");    
+}
+
 void learn_workloads(SharedVariable* sv) {
 	long long start, end;
 	long long workloads_1200[] = {0,0,0,0,0,0,0,0};
@@ -71,6 +80,8 @@ void learn_workloads(SharedVariable* sv) {
 			optimized_freq[i] = 0;
 		}
 	}
+
+	printFreq(optimized_freq);
 
 	// check schedulity
 	int idx = -1;
@@ -135,7 +146,7 @@ void learn_workloads(SharedVariable* sv) {
 	}
 
 
-	
+
 
 	// TODO: Fill the body
 	// This function is executed before the scheduling simulation.
