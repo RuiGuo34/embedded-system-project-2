@@ -102,7 +102,7 @@ void learn_workloads(SharedVariable* sv) {
 	float util[8] = {0,0,0,0,0,0,0,0};
 	float u = 2;
 	//1.0 is LIMIT
-	printDBG("num tasks %d", NUM_TASKS);
+	printDBG("num tasks %d\n", NUM_TASKS);
 	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
 		idx = -1;
 		for (unsigned int i = 0; i < NUM_TASKS; i++) {
