@@ -130,7 +130,7 @@ void learn_workloads(SharedVariable* sv) {
 		if (idx == -1) {
 			min = FLT_MIN;
 			for (unsigned i = 0; i < sizeof(util); i++){
-				if (util[i] > min) {
+				if (util[i] > min && optimized_freq[i] != 1) {
 					min = util[i];
 					idx = i;
 				}
