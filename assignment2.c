@@ -134,6 +134,9 @@ void learn_workloads(SharedVariable* sv) {
 		printDBG("util %f :: \n",u);
 	}
 
+
+	
+
 	// TODO: Fill the body
 	// This function is executed before the scheduling simulation.
 	// You need to calculate the execution time of each thread here.
@@ -233,8 +236,8 @@ void printDeadlines(){
 
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
 	totalIdleTime += idleTime;
-	printDBG("current idleTime is %lld\n", idleTime);
-	printDBG("Total idleTime is %lld\n", totalIdleTime);
+	// printDBG("current idleTime is %lld\n", idleTime);
+	// printDBG("Total idleTime is %lld\n", totalIdleTime);
 
 	static int prev_freq = 1;
 	static long long prev_timestamp = -1;
@@ -255,12 +258,12 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	prev_freq = sel.freq;
 
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
-	printDBG("Energy: %lld\n", energy);
-	printDBG("Time Difference %lld\n", time_difference);
-	printTasks(aliveTasks);
-	printTask(sel);
-	printDeadlines();
-	printDBG("idleTime is %lld\n", idleTime);
+	// printDBG("Energy: %lld\n", energy);
+	// printDBG("Time Difference %lld\n", time_difference);
+	// printTasks(aliveTasks);
+	// printTask(sel);
+	// printDeadlines();
+	// printDBG("idleTime is %lld\n", idleTime);
 
 	updateLastAliveTasks(aliveTasks);
 	
