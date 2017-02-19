@@ -119,7 +119,7 @@ void learn_workloads(SharedVariable* sv) {
 
 		//find the max index that is less than one 
 		float min = FLT_MIN;
-		for (unsigned i = 0; i < sizeof(util); i++) {
+		for (unsigned i = 0; i < NUM_TASKS; i++) {
 			if (util[i] < 1.0 && util[i] > min) {
 				min = util[i];
 				idx = i;
@@ -129,8 +129,8 @@ void learn_workloads(SharedVariable* sv) {
 		//idx is -1, just change to the max index;
 		if (idx == -1) {
 			min = FLT_MIN;
-			for (unsigned i = 0; i < sizeof(util); i++){
-				printDBG("%f %d", util[i], i);
+			for (unsigned i = 0; i < NUM_TASKS; i++){
+				
 				if (util[i] > min && optimized_freq[i] == 0) {
 					min = util[i];
 					idx = i;
@@ -139,11 +139,12 @@ void learn_workloads(SharedVariable* sv) {
 		}
 
 		//clear util array
-		for (unsigned i = 0; i < sizeof(util); i++){
+		for (unsigned i = 0; i < NUM_TASKS; i++){
 			util[i] = 0.0;
 		}
 
 		optimized_freq[idx] = 1; 
+		printFreq(optimized_freq);
 		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 		printDBG("util %f \n",u);
 	}
