@@ -95,55 +95,55 @@ void learn_workloads(SharedVariable* sv) {
 		}
 	}
 
-	// //printFreq(optimized_freq);
+	//printFreq(optimized_freq);
 
-	// // check schedulity
-	// int idx = -1;
-	// float util[8] = {0,0,0,0,0,0,0,0};
-	// float u = 2;
-	// //1.0 is LIMIT
-	// printDBG("num tasks %d\n", NUM_TASKS);
-	// while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
-	// 	idx = -1;
-	// 	for (unsigned int i = 0; i < NUM_TASKS; i++) {
-	// 		if (optimized_freq[i] == 0) {
-	// 			optimized_freq[i] = 1;
-	// 			float update = 0.0;
+	// check schedulity
+	int idx = -1;
+	float util[8] = {0,0,0,0,0,0,0,0};
+	float u = 2;
+	//1.0 is LIMIT
+	printDBG("num tasks %d\n", NUM_TASKS);
+	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
+		idx = -1;
+		for (unsigned int i = 0; i < NUM_TASKS; i++) {
+			if (optimized_freq[i] == 0) {
+				optimized_freq[i] = 1;
+				float update = 0.0;
 				
-	// 			util[i] = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
-	// 			optimized_freq[i] = 0;
-	// 		}
-	// 	}
+				util[i] = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
+				optimized_freq[i] = 0;
+			}
+		}
 
-	// 	//find the max index that is less than one 
-	// 	float min = FLT_MIN;
-	// 	for (unsigned i = 0; i < sizeof(util); i++) {
-	// 		if (util[i] < 1.0 && util[i] > min) {
-	// 			min = util[i];
-	// 			idx = i;
-	// 		}
-	// 	}
+		//find the max index that is less than one 
+		float min = FLT_MIN;
+		for (unsigned i = 0; i < sizeof(util); i++) {
+			if (util[i] < 1.0 && util[i] > min) {
+				min = util[i];
+				idx = i;
+			}
+		}
 		
-	// 	//idx is -1, just change to the max index;
-	// 	if (idx == -1) {
-	// 		min = FLT_MIN;
-	// 		for (unsigned i = 0; i < sizeof(util); i++){
-	// 			if (util[i] > min) {
-	// 				min = util[i];
-	// 				idx = i;
-	// 			}
-	// 		}
-	// 	}
+		//idx is -1, just change to the max index;
+		if (idx == -1) {
+			min = FLT_MIN;
+			for (unsigned i = 0; i < sizeof(util); i++){
+				if (util[i] > min) {
+					min = util[i];
+					idx = i;
+				}
+			}
+		}
 
-	// 	//clear util array
-	// 	for (unsigned i = 0; i < sizeof(util); i++){
-	// 		util[i] = 0.0;
-	// 	}
+		//clear util array
+		for (unsigned i = 0; i < sizeof(util); i++){
+			util[i] = 0.0;
+		}
  
-	// 	optimized_freq[idx] = 1; 
-	// 	u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
-	// 	printDBG("util %f \n",u);
-	// }
+		optimized_freq[idx] = 1; 
+		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
+		printDBG("util %f \n",u);
+	}
 	printDBG("finished with \n");
 	printFreq(optimized_freq);
 	printDBG("\n");
