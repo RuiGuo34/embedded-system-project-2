@@ -99,12 +99,10 @@ void learn_workloads(SharedVariable* sv) {
 		}
 	}
 
-	printFreq(optimized_freq);
-
 	// check schedulity
 	int idx = -1;
 	float util[8] = {0,0,0,0,0,0,0,0};
-	float u = 2;
+	float u = 10;
 	//1.0 is LIMIT
 	printDBG("num tasks %d\n", NUM_TASKS);
 	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
@@ -112,7 +110,7 @@ void learn_workloads(SharedVariable* sv) {
 		for (unsigned int i = 0; i < NUM_TASKS; i++) {
 			if (optimized_freq[i] == 0) {
 				optimized_freq[i] = 1;
-				float update = 0.0;
+
 				
 				util[i] = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 				optimized_freq[i] = 0;
