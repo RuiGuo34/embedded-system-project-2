@@ -133,7 +133,6 @@ void learn_workloads(SharedVariable* sv) {
 				if (util[i] > min && optimized_freq[i] != 1) {
 					min = util[i];
 					idx = i;
-					printDBG("idx %d",idx);
 				}
 			}
 		}
@@ -142,7 +141,7 @@ void learn_workloads(SharedVariable* sv) {
 		for (unsigned i = 0; i < sizeof(util); i++){
 			util[i] = 0.0;
 		}
- 		
+ 		printFreq(optimized_freq);
 		optimized_freq[idx] = 1; 
 		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
 		printDBG("util %f \n",u);
