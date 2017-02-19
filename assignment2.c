@@ -40,11 +40,11 @@ int sum(int *a) {
 
 void printFreq(int *freq){
     int i = 0;
-    printf("Frequency Preference: ");
+    printDBG("Frequency Preference: ");
     for(;i<NUM_TASKS;i++){
-        printf("%d ", freq[i]);        
+        printDBG("%d ", freq[i]);        
     }
-    printf("\n");    
+    printDBG("\n");    
 }
 
 float calculate_utilization(int *optimized_freq, long long *w_1200, long long *w_600, long long *deadlines) {
@@ -145,7 +145,7 @@ void learn_workloads(SharedVariable* sv) {
 		printDBG("util %f \n",u);
 	}
 	printDBG("finished with \n");
-	// printFreq(optimized_freq);
+	printFreq(optimized_freq);
 	printDBG("\n");
 
 	// TODO: Fill the body
