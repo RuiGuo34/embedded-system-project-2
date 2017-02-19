@@ -92,14 +92,14 @@ void learn_workloads(SharedVariable* sv) {
 
 	}
 
-	for (unsigned int i = 0; i < NUM_TASKS; i++) {
-		//calculate the approximate power
-		if (workloads_1200[i]*Power_1200 > workloads_600[i]*Power_600) {
-			optimized_freq[i] = 0;
-		}
-	}
+	// for (unsigned int i = 0; i < NUM_TASKS; i++) {
+	// 	//calculate the approximate power
+	// 	if (workloads_1200[i]*Power_1200 > workloads_600[i]*Power_600) {
+	// 		optimized_freq[i] = 0;
+	// 	}
+	// }
 
-	printFreq(optimized_freq);
+	// printFreq(optimized_freq);
 
 	// check schedulity
 	// int idx = -1;
@@ -273,7 +273,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	prev_freq = sel.freq;
 
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
-	// printDBG("Energy: %lld\n", energy);
+	printDBG("Energy: %lld\n", energy);
 	// printDBG("Time Difference %lld\n", time_difference);
 	// printTasks(aliveTasks);
 	// printTask(sel);
