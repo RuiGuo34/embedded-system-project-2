@@ -28,20 +28,20 @@ thread_function_t functions[] = {&thread_button, &thread_twocolor, &thread_temp,
 
 long long energy = 0;
 
-int P_WORK[] = {450,1050};
+int CPU_WORK[] = {450,1050};
+
+long long totalIdleTime = 0;
 
 int sum(int *a) {
-	unsigned int i = 0, s = 0;
-	for (;i<NUM_TASKS;i++) {
+	unsigned int s = 0;
+	for (unsigned int i = 0;i<8;i++) {
 		s+=a[i];
 	}
 	return s;
 }
 
 void printFreq(int *freq){
-    int i = 0;
-    printDBG("Frequency Preference: ");
-    for(;i<NUM_TASKS;i++){
+    for(unsigned int i = 0;i<8;i++){
         printDBG("%d ", freq[i]);        
     }
     printDBG("\n");    
@@ -49,8 +49,7 @@ void printFreq(int *freq){
 
 float calculate_utilization(int *optimized_freq, long long *w_1200, long long *w_600, long long *deadlines) {
 	float sum = 0.0;
-	int i = 0;
-	for (;i<NUM_TASKS;i++) {
+	for (unsigned i = 0;i<8;i++) {
 		if (optimized_freq[i] == 1) {
 			sum += ((float)w_1200[i])/deadlines[i];
 		}
@@ -76,23 +75,22 @@ void learn_workloads(SharedVariable* sv) {
 		end = get_current_time_us();
 
 		workloads_1200[i] = end-start;
-		printDBG("wordload for 1200, task %d", i);
-		printDBG(" %lld ",workloads_1200[i]);
-		printDBG("\n");
+		// printDBG("wordload for 1200, task %d", i);
+		// printDBG(" %lld ",workloads_1200[i]);
+		// printDBG("\n");
 		//then test with min cpu freq
 		set_by_min_freq();
 		start = get_current_time_us(); 
 		(*(functions[i]))(sv);
 		end = get_current_time_us();
 		workloads_600[i] = end-start;
-		printDBG("wordload for 600, task %d", i);
-		printDBG(" %lld ",workloads_600[i]);
-		printDBG("\n");
+		// printDBG("wordload for 600, task %d", i);
+		// printDBG(" %lld ",workloads_600[i]);
+		// printDBG("\n");
 		currentDeadlines[i] = workloadDeadlines[i];
-
 	}
 
-	for (unsigned int i = 0; i < NUM_TASKS; i++) {
+	for (unsigned int i = 0; i < 8; i++) {
 		//calculate the approximate power
 		if (workloads_1200[i]*Power_1200 > workloads_600[i]*Power_600) {
 			optimized_freq[i] = 0;
@@ -100,19 +98,26 @@ void learn_workloads(SharedVariable* sv) {
 	}
 
 	// check schedulity
-	int idx = -1;
+	int index;
 	float util[8] = {0,0,0,0,0,0,0,0};
 	float u = 10;
 	//1.0 is LIMIT
-	printDBG("num tasks %d\n", NUM_TASKS);
-	while (u > 1.0 && sum(optimized_freq) != NUM_TASKS) {
-		idx = -1;
+	
+	while (u > 1.0 && sum(optimized_freq) != 8) {
+		index = -1;
 		for (unsigned int i = 0; i < 8; i++) {
 			if (optimized_freq[i] == 0) {
 				optimized_freq[i] = 1;
-
-				
-				util[i] = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
+				float sum = 0.0;
+				for (unsigned k = 0;k<8;k++) {
+					if (optimized_freq[k] == 1) {
+						sum += ((float)workloads_1200[k])/currentDeadlines[k];
+					}
+					else {
+						sum += ((float)workloads_600[k])/currentDeadlines[k];
+					}
+				}
+				util[i] = sum;
 				optimized_freq[i] = 0;
 			}
 		}
@@ -122,18 +127,18 @@ void learn_workloads(SharedVariable* sv) {
 		for (unsigned i = 0; i < 8; i++) {
 			if (util[i] < 1.0 && util[i] > min) {
 				min = util[i];
-				idx = i;
+				index = i;
 			}
 		}
 		
-		//idx is -1, just change to the max index;
-		if (idx == -1) {
+		//index is -1, just change to the max index;
+		if (index == -1) {
 			min = FLT_MIN;
 			for (unsigned i = 0; i < 8; i++){
 				
 				if (util[i] > min && optimized_freq[i] == 0) {
 					min = util[i];
-					idx = i;
+					index = i;
 				}
 			}
 		}
@@ -143,9 +148,18 @@ void learn_workloads(SharedVariable* sv) {
 			util[i] = 0.0;
 		}
 
-		optimized_freq[idx] = 1; 
+		optimized_freq[index] = 1; 
 		printFreq(optimized_freq);
-		u = calculate_utilization(optimized_freq,workloads_1200,workloads_600,workloadDeadlines);
+		float sum = 0.0;
+		for (unsigned k = 0;k<8;k++) {
+			if (optimized_freq[k] == 1) {
+				sum += ((float)workloads_1200[k])/currentDeadlines[k];
+			}
+			else {
+				sum += ((float)workloads_600[k])/currentDeadlines[k];
+			}
+		}
+		u = sum;
 		printDBG("util %f \n",u);
 	}
 	printDBG("finished with \n");
@@ -201,16 +215,16 @@ void updateCurrentDeadLines(long long time_difference, int* lastAliveTasks, cons
 
 int chooseTask(long long *currentDeadlines, const int* aliveTasks) {
 	long long minDead = LONG_MAX;
-	int taskIdx = -1, i = 0;
+	int taskindex = -1, i = 0;
 	for (; i < NUM_TASKS; i++) {
 		if (aliveTasks[i] == 1) {
 			if (currentDeadlines[i] < minDead) {
 				minDead = currentDeadlines[i];
-				taskIdx = i;
+				taskindex = i;
 			}
 		}
 	}
-	return taskIdx;
+	return taskindex;
 }
 
 int chooseFreq(int i) {
@@ -218,35 +232,31 @@ int chooseFreq(int i) {
 }
 
 void updateLastAliveTasks(const int* aliveTasks) {
-	int i = 0;
-	for (; i < NUM_TASKS; i++) {
+	for (unsigned int i = 0; i < 8; i++) {
 		lastAliveTasks[i] = *(aliveTasks+i);
 	}
 }
-long long totalIdleTime = 0; 
 
 void printTask(TaskSelection t){
-    printDBG("Task  id:%d, freq:%d", t.task, t.freq);
-    printDBG("   ::::   ");
+    printDBG("Task id:%d, Task freq:%d", t.task, t.freq);
+    printDBG("\n");
 }
 
 void printTasks(const int *aliveTasks){
-    int i = 0;
     printDBG("Current Alive Tasks:  ");
-    for(;i<8;i++){
+    for(unsigned int i = 0;i<8;i++){
         printDBG("%d ", *(aliveTasks+i));
     }
-    printDBG(" :::::: ");
+    printDBG("\n");
 }
 
 void printDeadlines(){
-    int i = 0;
     printDBG("Current Deadline: ");
-    for(;i<NUM_TASKS;i++){
+    for(unsigned int i = 0;i<NUM_TASKS;i++){
         printDBG("");
         printDBG("%lld  ",currentDeadlines[i]);
     }
-    printDBG("  :::::  ");
+    printDBG("\n");
 }
 
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
@@ -272,7 +282,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 
 	prev_freq = sel.freq;
 
-	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*P_WORK[prev_freq];
+	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*CPU_WORK[prev_freq];
 	printDBG("Energy: %lld\n", energy);
 	// printDBG("Time Difference %lld\n", time_difference);
 	// printTasks(aliveTasks);
