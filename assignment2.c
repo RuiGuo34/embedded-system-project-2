@@ -17,13 +17,13 @@
 // - Parameters
 // sv: The variable which is shared for every function over all threads
 
-typedef void* (*thread_function_t)(void*);
+typedef void* (*thread_process)(void*);
 
 int optimized_freq[] = {1,1,1,1,1,1,1,1};
 
 long long currentDeadlines[] = {0,0,0,0,0,0,0,0};
 
-thread_function_t functions[] = {&thread_button, &thread_twocolor, &thread_temp,
+thread_process functions[] = {&thread_button, &thread_twocolor, &thread_temp,
 &thread_track, &thread_touch, &thread_rgbcolor,&thread_aled, &thread_buzzer };
 
 long long energy = 0;
