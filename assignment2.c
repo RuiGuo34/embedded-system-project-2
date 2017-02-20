@@ -33,32 +33,21 @@ int CPU_WORK[] = {450,1050};
 long long totalIdleTime = 0;
 
 int sum(int *a) {
-	unsigned int s = 0;
+	unsigned int sum = 0;
 	for (unsigned int i = 0;i<8;i++) {
-		s+=a[i];
-	}
-	return s;
-}
-
-void printFreq(int *freq){
-    for(unsigned int i = 0;i<8;i++){
-        printDBG("%d ", freq[i]);        
-    }
-    printDBG("\n");    
-}
-
-float calculate_utilization(int *optimized_freq, long long *w_1200, long long *w_600, long long *deadlines) {
-	float sum = 0.0;
-	for (unsigned i = 0;i<8;i++) {
-		if (optimized_freq[i] == 1) {
-			sum += ((float)w_1200[i])/deadlines[i];
-		}
-		else {
-			sum += ((float)w_600[i])/deadlines[i];
-		}
+		sum+=a[i];
 	}
 	return sum;
 }
+
+// void printFreq(int *freq){
+//     for(unsigned int i = 0;i<8;i++){
+//         printDBG("%d ", freq[i]);        
+//     }
+//     printDBG("\n");    
+// }
+
+
 
 void learn_workloads(SharedVariable* sv) {
 	long long start, end;
@@ -160,11 +149,11 @@ void learn_workloads(SharedVariable* sv) {
 			}
 		}
 		u = sum;
-		printDBG("util %f \n",u);
+		// printDBG("util %f \n",u);
 	}
-	printDBG("the finalized freq choice is\n");
-	printFreq(optimized_freq);
-	printDBG("\n");
+	// printDBG("the finalized freq choice is\n");
+	// printFreq(optimized_freq);
+	// printDBG("\n");
 
 	// TODO: Fill the body
 	// This function is executed before the scheduling simulation.
@@ -194,24 +183,6 @@ void learn_workloads(SharedVariable* sv) {
 
 int lastAliveTasks[] = {0,0,0,0,0,0,0,0};
 
-void updateCurrentDeadLines(long long time_difference, int* lastAliveTasks, const int* aliveTasks, long long idleTime) {
-	int i = 0;
-	int x;
-	for (; i < NUM_TASKS; i++) {
-		if (aliveTasks[i] == 1) {
-			if (lastAliveTasks[i] == 1 && idleTime == 0) {
-				x = currentDeadlines[i] - time_difference;
-				currentDeadlines[i] = x > 0 ? x:workloadDeadlines[i];
-			}
-			else {
-				currentDeadlines[i] = workloadDeadlines[i];
-			}
-		}
-		else {
-			currentDeadlines[i] = 0;
-		}
-	}
-}
 
 int chooseTask(long long *currentDeadlines, const int* aliveTasks) {
 	long long minDead = LONG_MAX;
@@ -231,38 +202,35 @@ int chooseFreq(int i) {
 	return optimized_freq[i];
 }
 
-void updateLastAliveTasks(const int* aliveTasks) {
+// void printTask(TaskSelection t){
+//     printDBG("Task id:%d, Task freq:%d", t.task, t.freq);
+//     printDBG("\n");
+// }
 
-}
+// void printTasks(const int *aliveTasks){
+//     printDBG("Current Alive Tasks:  ");
+//     for(unsigned int i = 0;i<8;i++){
+//         printDBG("%d ", *(aliveTasks+i));
+//     }
+//     printDBG("\n");
+// }
 
-void printTask(TaskSelection t){
-    printDBG("Task id:%d, Task freq:%d", t.task, t.freq);
-    printDBG("\n");
-}
-
-void printTasks(const int *aliveTasks){
-    printDBG("Current Alive Tasks:  ");
-    for(unsigned int i = 0;i<8;i++){
-        printDBG("%d ", *(aliveTasks+i));
-    }
-    printDBG("\n");
-}
-
-void printDeadlines(){
-    printDBG("Current Deadline: ");
-    for(unsigned int i = 0;i<NUM_TASKS;i++){
-        printDBG("");
-        printDBG("%lld  ",currentDeadlines[i]);
-    }
-    printDBG("\n");
-}
+// void printDeadlines(){
+//     printDBG("Current Deadline: ");
+//     for(unsigned int i = 0;i<NUM_TASKS;i++){
+//         printDBG("");
+//         printDBG("%lld  ",currentDeadlines[i]);
+//     }
+//     printDBG("\n");
+// }
 
 TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long idleTime) {
 	totalIdleTime += idleTime;
 	// printDBG("current idleTime is %lld\n", idleTime);
 	// printDBG("Total idleTime is %lld\n", totalIdleTime);
 
-	static int prev_freq = 1;
+	static int prev_freq;
+	//initialize time line
 	static long long prev_timestamp = -1;
 	long long curr_timestamp = get_scheduler_elapsed_time_us();
 	long long time_difference = 0;
@@ -271,13 +239,13 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 		time_difference = curr_timestamp - prev_timestamp;
 	}
 	prev_timestamp = curr_timestamp;
-	
-	int x = 0;
+	//update current deadlines
+	int diff = 0;
 	for (unsigned i = 0; i < NUM_TASKS; i++) {
 		if (aliveTasks[i] == 1) {
 			if (lastAliveTasks[i] == 1 && idleTime == 0) {
-				x = currentDeadlines[i] - time_difference;
-				currentDeadlines[i] = x > 0 ? x:workloadDeadlines[i];
+				diff = currentDeadlines[i] - time_difference;
+				currentDeadlines[i] = diff > 0 ? diff:workloadDeadlines[i];
 			}
 			else {
 				currentDeadlines[i] = workloadDeadlines[i];
@@ -301,7 +269,7 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	// printTask(sel);
 	// printDeadlines();
 	// printDBG("idleTime is %lld\n", idleTime);
-
+	// update current alive tasks
 	for (unsigned int i = 0; i < 8; i++) {
 		lastAliveTasks[i] = *(aliveTasks+i);
 	}
