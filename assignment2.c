@@ -100,11 +100,12 @@ void learn_workloads(SharedVariable* sv) {
 	// check schedulity
 	int index;
 	float util[8] = {0,0,0,0,0,0,0,0};
-	float u = 10;
+	float u = FLT_MAX;
 	//1.0 is LIMIT
-	
+	//break loop condition: whether u is smaller than 1 and all freq set to HIGH
 	while (u > 1.0 && sum(optimized_freq) != 8) {
 		index = -1;
+		//switch one to max can calculate the utilization.
 		for (unsigned int i = 0; i < 8; i++) {
 			if (optimized_freq[i] == 0) {
 				optimized_freq[i] = 1;
@@ -117,6 +118,7 @@ void learn_workloads(SharedVariable* sv) {
 						sum += ((float)workloads_600[k])/currentDeadlines[k];
 					}
 				}
+				printDBG("%f", sum);
 				util[i] = sum;
 				optimized_freq[i] = 0;
 			}
@@ -133,9 +135,7 @@ void learn_workloads(SharedVariable* sv) {
 		
 		//index is -1, just change to the max index;
 		if (index == -1) {
-			min = FLT_MIN;
 			for (unsigned i = 0; i < 8; i++){
-				
 				if (util[i] > min && optimized_freq[i] == 0) {
 					min = util[i];
 					index = i;
@@ -162,7 +162,7 @@ void learn_workloads(SharedVariable* sv) {
 		u = sum;
 		printDBG("util %f \n",u);
 	}
-	printDBG("finished with \n");
+	printDBG("the finalized freq choice is\n");
 	printFreq(optimized_freq);
 	printDBG("\n");
 
