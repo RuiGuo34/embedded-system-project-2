@@ -107,7 +107,7 @@ void learn_workloads(SharedVariable* sv) {
 						sum += ((float)workloads_600[k])/currentDeadlines[k];
 					}
 				}
-				printDBG("%f", sum);
+				// printDBG("%f", sum);
 				util[i] = sum;
 				optimized_freq[i] = 0;
 			}
