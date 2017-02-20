@@ -149,7 +149,7 @@ void learn_workloads(SharedVariable* sv) {
 		}
 
 		optimized_freq[index] = 1; 
-		printFreq(optimized_freq);
+
 		float sum = 0.0;
 		for (unsigned k = 0;k<8;k++) {
 			if (optimized_freq[k] == 1) {
@@ -232,9 +232,7 @@ int chooseFreq(int i) {
 }
 
 void updateLastAliveTasks(const int* aliveTasks) {
-	for (unsigned int i = 0; i < 8; i++) {
-		lastAliveTasks[i] = *(aliveTasks+i);
-	}
+
 }
 
 void printTask(TaskSelection t){
@@ -273,14 +271,28 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 		time_difference = curr_timestamp - prev_timestamp;
 	}
 	prev_timestamp = curr_timestamp;
+	
+	int x = 0;
+	for (unsigned i = 0; i < NUM_TASKS; i++) {
+		if (aliveTasks[i] == 1) {
+			if (lastAliveTasks[i] == 1 && idleTime == 0) {
+				x = currentDeadlines[i] - time_difference;
+				currentDeadlines[i] = x > 0 ? x:workloadDeadlines[i];
+			}
+			else {
+				currentDeadlines[i] = workloadDeadlines[i];
+			}
+		}
+		else {
+			currentDeadlines[i] = 0;
+		}
+	}
 
-	updateCurrentDeadLines(time_difference, lastAliveTasks, aliveTasks, idleTime);
+	TaskSelection res;
+	res.task = chooseTask(currentDeadlines, aliveTasks);
+	res.freq = chooseFreq(res.task);
 
-	TaskSelection sel;
-	sel.task = chooseTask(currentDeadlines, aliveTasks);
-	sel.freq = chooseFreq(sel.task);
-
-	prev_freq = sel.freq;
+	prev_freq = res.freq;
 
 	energy = energy + ((float)idleTime/1000000)*50 + ((float)time_difference/1000000)*CPU_WORK[prev_freq];
 	// printDBG("Energy: %lld\n", energy);
@@ -290,7 +302,9 @@ TaskSelection select_task(SharedVariable* sv, const int* aliveTasks, long long i
 	// printDeadlines();
 	// printDBG("idleTime is %lld\n", idleTime);
 
-	updateLastAliveTasks(aliveTasks);
+	for (unsigned int i = 0; i < 8; i++) {
+		lastAliveTasks[i] = *(aliveTasks+i);
+	}
 	
-    return sel;
+    return res;
 }
